@@ -24,8 +24,9 @@ class Player:
         self.image = pygame.transform.rotate(self.image, 90) #Muda o ângulo do eixo vertical
         self.x = 200
         self.y = 570
-        self.velocidade = 2  # Velocidade reduzida para 2
+        self.velocidade = 2  # Velocidade inicial do jogador
         self.vida = 6
+        self.tiro_rapido = False  # Controla se o tiro é rápido ou não
 
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))
@@ -39,7 +40,7 @@ class Zombie:
     def respawn(self):
         self.x = random.randint(800, 1350)
         self.y = random.randint(50, alt - 80)
-        self.velocidade = 1  # Velocidade reduzida para 1
+        self.velocidade = 1  # Velocidade inicial do zumbi
     
     def update(self):
         self.x -= self.velocidade
@@ -84,6 +85,13 @@ xp = 0
 fonte = pygame.font.Font(None, 36)
 x = 0
 rodando = True
+pausado = False  # Controla se o jogo está pausado
+cenário_selecionado = False  # Verifica se o cenário foi alterado
+xp_inicial = xp  # Salva o XP inicial para reiniciar a contagem após a escolha
+
+# Velocidades e configurações adicionais do cenário
+velocidade_inicial = player.velocidade
+velocidade_zumbi_inicial = zombie.velocidade
 
 while rodando:
     for event in pygame.event.get():
@@ -93,6 +101,49 @@ while rodando:
             if event.key == pygame.K_SPACE and not bala.ativa:
                 bala.ativa = True
                 bala.x, bala.y = player.x + 50, player.y + 40
+
+            # Quando XP atinge 15, pausa o jogo e exibe opções
+            if xp >= 15 and not pausado:
+                pausado = True
+                # Exibe opções ao jogador
+                while pausado:
+                    screen.fill((0, 0, 0))  # Tela preta para a pausa
+                    texto = fonte.render("Escolha uma opção:", True, (255, 255, 255))
+                    option1 = fonte.render("1 - Mais Velocidade", True, (255, 255, 255))
+                    option2 = fonte.render("2 - Mais Vida", True, (255, 255, 255))
+                    option3 = fonte.render("3 - Tiro Mais Rápido", True, (255, 255, 255))
+                    screen.blit(texto, (lar // 2 - texto.get_width() // 2, alt // 2 - 80))
+                    screen.blit(option1, (lar // 2 - option1.get_width() // 2, alt // 2 - 40))
+                    screen.blit(option2, (lar // 2 - option2.get_width() // 2, alt // 2))
+                    screen.blit(option3, (lar // 2 - option3.get_width() // 2, alt // 2 + 40))
+
+                    pygame.display.update()
+
+                    # Esperar pela escolha do jogador
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pausado = False
+                            rodando = False
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_1:
+                                player.velocidade += 1  # Aumenta a velocidade
+                                zombie.velocidade += 1  # Aumenta a velocidade do zumbi
+                                cenario_atual = 3  # Mudar para o cenário de floresta
+                                pausado = False
+                                xp = 0  # Reiniciar o XP após a escolha
+                            elif event.key == pygame.K_2:
+                                player.vida += 3  # Aumenta a vida
+                                cenario_atual = 2  # Mudar para o cenário de neve
+                                pausado = False
+                                xp = 0  # Reiniciar o XP após a escolha
+                            elif event.key == pygame.K_3:
+                                player.tiro_rapido = True  # Habilita tiro rápido
+                                pausado = False
+                                xp = 0  # Reiniciar o XP após a escolha
+
+    # Atualizar o cenário
+    bg = pygame.image.load(cenarios[cenario_atual]).convert_alpha()
+    bg = pygame.transform.scale(bg, (lar, alt))
 
     # Movimentação do jogador
     tecla = pygame.key.get_pressed()
