@@ -1,4 +1,4 @@
-import pygame
+import pygamecal
 import random
 import time
 
