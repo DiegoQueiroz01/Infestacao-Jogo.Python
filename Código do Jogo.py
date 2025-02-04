@@ -1,4 +1,4 @@
-import pygamecal
+import pygame
 import random
 import time
 
@@ -16,12 +16,19 @@ cenarios = {
     3: 'Imagens/cenario_floresta.gif'
 }
 
+# Atributos dos cenários
+cenario_atributos = {
+    1: {'velocidade_player': 2, 'velocidade_zumbi': 1, 'velocidade_bg': 1},  # Deserto
+    2: {'velocidade_player': 1, 'velocidade_zumbi': 2, 'velocidade_bg': 2},  # Neve
+    3: {'velocidade_player': 3, 'velocidade_zumbi': 1, 'velocidade_bg': 1}   # Floresta
+}
+
 class Player:
     def __init__(self):
         self.image = pygame.image.load('Imagens/soldado.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (80, 100))
         self.image = pygame.transform.flip(self.image, True, True)  # Virado para a esquerda
-        self.image = pygame.transform.rotate(self.image, 90) #Muda o ângulo do eixo vertical
+        self.image = pygame.transform.rotate(self.image, 90) # Muda o ângulo do eixo vertical
         self.x = 200
         self.y = 570
         self.velocidade = 2  # Velocidade inicial do jogador
@@ -141,9 +148,16 @@ while rodando:
                                 pausado = False
                                 xp = 0  # Reiniciar o XP após a escolha
 
-    # Atualizar o cenário
-    bg = pygame.image.load(cenarios[cenario_atual]).convert_alpha()
-    bg = pygame.transform.scale(bg, (lar, alt))
+    # Atualizar o cenário com base nos atributos do cenário
+    player.velocidade = cenario_atributos[cenario_atual]['velocidade_player']
+    zombie.velocidade = cenario_atributos[cenario_atual]['velocidade_zumbi']
+    velocidade_bg = cenario_atributos[cenario_atual]['velocidade_bg']
+
+    # Ajustar a movimentação do cenário de fundo para os diferentes cenários
+    x -= velocidade_bg
+    rel_x = x % bg.get_rect().width
+    screen.blit(bg, (rel_x - bg.get_rect().width, 0))
+    screen.blit(bg, (rel_x, 0))
 
     # Movimentação do jogador
     tecla = pygame.key.get_pressed()
@@ -180,11 +194,6 @@ while rodando:
         rodando = False
 
     # Desenhar elementos na tela
-    x -= 1
-    rel_x = x % bg.get_rect().width
-    screen.blit(bg, (rel_x - bg.get_rect().width, 0))
-    screen.blit(bg, (rel_x, 0))
-
     zombie.draw(screen)
     bala.draw(screen)
     player.draw(screen)
