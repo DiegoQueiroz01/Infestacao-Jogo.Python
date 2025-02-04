@@ -1,6 +1,5 @@
 import pygame
 import random
-import time
 
 pygame.init()
 
@@ -11,29 +10,22 @@ pygame.display.set_caption('Sobreviver')
 
 # Carregar imagens dos cenários
 cenarios = {
-    1: 'Imagens/cenario_deserto.gif',
+    1: 'Imagens/cenario_floresta.gif',
     2: 'Imagens/cenario_neve.jpg',
-    3: 'Imagens/cenario_floresta.gif'
-}
-
-# Atributos dos cenários
-cenario_atributos = {
-    1: {'velocidade_player': 2, 'velocidade_zumbi': 1, 'velocidade_bg': 1},  # Deserto
-    2: {'velocidade_player': 1, 'velocidade_zumbi': 2, 'velocidade_bg': 2},  # Neve
-    3: {'velocidade_player': 3, 'velocidade_zumbi': 1, 'velocidade_bg': 1}   # Floresta
+    3: 'Imagens/cenario_deserto.gif'
 }
 
 class Player:
     def __init__(self):
         self.image = pygame.image.load('Imagens/soldado.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (80, 100))
-        self.image = pygame.transform.flip(self.image, True, True)  # Virado para a esquerda
-        self.image = pygame.transform.rotate(self.image, 90) # Muda o ângulo do eixo vertical
+        self.image = pygame.transform.flip(self.image, True, True)
+        self.image = pygame.transform.rotate(self.image, 90)
         self.x = 200
         self.y = 570
-        self.velocidade = 2  # Velocidade inicial do jogador
+        self.velocidade = 2
         self.vida = 6
-        self.tiro_rapido = False  # Controla se o tiro é rápido ou não
+        self.tiro_rapido = False
 
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))
@@ -41,18 +33,19 @@ class Player:
 class Zombie:
     def __init__(self):
         self.image = pygame.image.load('Imagens/zombie1.webp').convert_alpha()
-        self.image = pygame.transform.scale(self.image, (80, 80))  # Mesmo tamanho do soldado
+        self.image = pygame.transform.scale(self.image, (80, 80))
         self.respawn()
 
     def respawn(self):
         self.x = random.randint(800, 1350)
         self.y = random.randint(50, alt - 80)
-        self.velocidade = 1  # Velocidade inicial do zumbi
-    
+        self.velocidade = 1
+
     def update(self):
         self.x -= self.velocidade
-        if self.x < -80:  # Saiu da tela, reaparece
+        if self.x < -80:
             self.respawn()
+            player.vida -= 1  # Perde vida quando o zumbi passa
 
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))
@@ -66,39 +59,29 @@ class Bala:
         self.y = 0
         self.velocidade = 7
         self.ativa = False
-    
+
     def update(self):
         if self.ativa:
             self.x += self.velocidade
-            if self.x > lar:  # Saiu da tela, desativa
+            if self.x > lar:
                 self.ativa = False
 
     def draw(self, screen):
         if self.ativa:
             screen.blit(self.image, (self.x, self.y))
 
-# Inicializar objetos
 player = Player()
 zombie = Zombie()
 bala = Bala()
-
-# Carregar o cenário inicial
-cenario_atual = 1
+cenario_atual = 3  # Padrão deserto
 bg = pygame.image.load(cenarios[cenario_atual]).convert_alpha()
 bg = pygame.transform.scale(bg, (lar, alt))
 
-# Pontuação e vida
 xp = 0
 fonte = pygame.font.Font(None, 36)
 x = 0
 rodando = True
-pausado = False  # Controla se o jogo está pausado
-cenário_selecionado = False  # Verifica se o cenário foi alterado
-xp_inicial = xp  # Salva o XP inicial para reiniciar a contagem após a escolha
-
-# Velocidades e configurações adicionais do cenário
-velocidade_inicial = player.velocidade
-velocidade_zumbi_inicial = zombie.velocidade
+pausado = False
 
 while rodando:
     for event in pygame.event.get():
@@ -109,12 +92,10 @@ while rodando:
                 bala.ativa = True
                 bala.x, bala.y = player.x + 50, player.y + 40
 
-            # Quando XP atinge 15, pausa o jogo e exibe opções
             if xp >= 15 and not pausado:
                 pausado = True
-                # Exibe opções ao jogador
                 while pausado:
-                    screen.fill((0, 0, 0))  # Tela preta para a pausa
+                    screen.fill((0, 0, 0))
                     texto = fonte.render("Escolha uma opção:", True, (255, 255, 255))
                     option1 = fonte.render("1 - Mais Velocidade", True, (255, 255, 255))
                     option2 = fonte.render("2 - Mais Vida", True, (255, 255, 255))
@@ -123,43 +104,29 @@ while rodando:
                     screen.blit(option1, (lar // 2 - option1.get_width() // 2, alt // 2 - 40))
                     screen.blit(option2, (lar // 2 - option2.get_width() // 2, alt // 2))
                     screen.blit(option3, (lar // 2 - option3.get_width() // 2, alt // 2 + 40))
-
                     pygame.display.update()
 
-                    # Esperar pela escolha do jogador
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pausado = False
                             rodando = False
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_1:
-                                player.velocidade += 1  # Aumenta a velocidade
-                                zombie.velocidade += 1  # Aumenta a velocidade do zumbi
-                                cenario_atual = 3  # Mudar para o cenário de floresta
-                                pausado = False
-                                xp = 0  # Reiniciar o XP após a escolha
+                                player.velocidade += 1
+                                zombie.velocidade += 1
+                                cenario_atual = 1
                             elif event.key == pygame.K_2:
-                                player.vida += 3  # Aumenta a vida
-                                cenario_atual = 2  # Mudar para o cenário de neve
-                                pausado = False
-                                xp = 0  # Reiniciar o XP após a escolha
+                                player.vida += 3
+                                cenario_atual = 2
                             elif event.key == pygame.K_3:
-                                player.tiro_rapido = True  # Habilita tiro rápido
-                                pausado = False
-                                xp = 0  # Reiniciar o XP após a escolha
+                                player.tiro_rapido = True
+                                cenario_atual = 3
+                            pausado = False
+                            xp = 0
 
-    # Atualizar o cenário com base nos atributos do cenário
-    player.velocidade = cenario_atributos[cenario_atual]['velocidade_player']
-    zombie.velocidade = cenario_atributos[cenario_atual]['velocidade_zumbi']
-    velocidade_bg = cenario_atributos[cenario_atual]['velocidade_bg']
+    bg = pygame.image.load(cenarios[cenario_atual]).convert_alpha()
+    bg = pygame.transform.scale(bg, (lar, alt))
 
-    # Ajustar a movimentação do cenário de fundo para os diferentes cenários
-    x -= velocidade_bg
-    rel_x = x % bg.get_rect().width
-    screen.blit(bg, (rel_x - bg.get_rect().width, 0))
-    screen.blit(bg, (rel_x, 0))
-
-    # Movimentação do jogador
     tecla = pygame.key.get_pressed()
     if tecla[pygame.K_UP] and player.y > 0:
         player.y -= player.velocidade
@@ -170,11 +137,9 @@ while rodando:
     if tecla[pygame.K_LEFT] and player.x > 0:
         player.x -= player.velocidade
 
-    # Atualizar posição da bala e do zumbi
     bala.update()
     zombie.update()
 
-    # Checar colisão da bala com o zumbi
     bala_rect = pygame.Rect(bala.x, bala.y, 30, 30)
     zombie_rect = pygame.Rect(zombie.x, zombie.y, 80, 80)
 
@@ -183,26 +148,25 @@ while rodando:
         bala.ativa = False
         zombie.respawn()
 
-    # Checar colisão do zumbi com o jogador
     player_rect = pygame.Rect(player.x, player.y, 80, 80)
     if player_rect.colliderect(zombie_rect):
         player.vida -= 1
         zombie.respawn()
     
-    # Se a vida chegar a 0, o jogo acaba
     if player.vida <= 0:
         rodando = False
 
-    # Desenhar elementos na tela
+    x -= 1
+    rel_x = x % bg.get_rect().width
+    screen.blit(bg, (rel_x - bg.get_rect().width, 0))
+    screen.blit(bg, (rel_x, 0))
+
     zombie.draw(screen)
     bala.draw(screen)
     player.draw(screen)
 
-    texto_xp = fonte.render(f"XP: {xp}", True, (255, 255, 255))
-    texto_vida = fonte.render(f"Vida: {player.vida}", True, (255, 0, 0))
-    screen.blit(texto_xp, (20, 20))
-    screen.blit(texto_vida, (20, 50))
-
+    screen.blit(fonte.render(f"XP: {xp}", True, (255, 255, 255)), (20, 20))
+    screen.blit(fonte.render(f"Vida: {player.vida}", True, (255, 0, 0)), (20, 50))
     pygame.display.update()
 
 pygame.quit()
