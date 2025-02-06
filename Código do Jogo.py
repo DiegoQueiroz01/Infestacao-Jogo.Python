@@ -76,11 +76,12 @@ zombies = [Zombie()]
 bala = Bala()
 
 cenario_atual = 1
+cenarios_visitados = set()
 bg = pygame.image.load(cenarios[cenario_atual]).convert_alpha()
 bg = pygame.transform.scale(bg, (lar, alt))
 
 xp = 0
-total_xp = 0
+xp_total = 0
 fonte = pygame.font.Font(None, 36)
 x = 0
 rodando = True
@@ -96,13 +97,13 @@ while rodando:
                 bala.x, bala.y = player.x + 50, player.y + 40
 
             if xp >= 15 and not pausado:
-                total_xp += xp
                 pausado = True
+                cenarios_visitados.add(cenario_atual)
                 while pausado:
                     screen.fill((0, 0, 0))
-                    option1 = fonte.render("1 - Mais Velocidade", True, (255, 255, 255))
-                    option2 = fonte.render("2 - Mais Vida", True, (255, 255, 255))
-                    option3 = fonte.render("3 - Tiro Mais Rápido", True, (255, 255, 255))
+                    option1 = fonte.render("1 - Mais Velocidade (Floresta)", True, (255, 255, 255))
+                    option2 = fonte.render("2 - Mais Vida (Neve)", True, (255, 255, 255))
+                    option3 = fonte.render("3 - Tiro Mais Rápido (Deserto)", True, (255, 255, 255))
                     screen.blit(option1, (200, 200))
                     screen.blit(option2, (200, 250))
                     screen.blit(option3, (200, 300))
@@ -116,15 +117,27 @@ while rodando:
                             if event.key == pygame.K_1:
                                 player.velocidade += 1
                                 zombies = [Zombie() for _ in range(2)]
+                                cenario_atual = random.choice(list(cenarios.keys()))
+                                pausado = False
                             elif event.key == pygame.K_2:
                                 player.vida += 3
                                 zombies = [Zombie(resistencia=2)]
+                                cenario_atual = random.choice(list(cenarios.keys()))
+                                pausado = False
                             elif event.key == pygame.K_3:
                                 player.tiro_rapido = True
                                 zombies = [Zombie(resistencia=3)]
-                            cenario_atual = random.choice(list(cenarios.keys()))
-                            pausado = False
+                                cenario_atual = random.choice(list(cenarios.keys()))
+                                pausado = False
                             xp = 0
+
+    if xp_total >= 75 or len(cenarios_visitados) >= 3:
+        screen.fill((0, 0, 0))
+        victory_text = fonte.render("Victory!", True, (255, 215, 0))
+        screen.blit(victory_text, (lar // 2 - 50, alt // 2))
+        pygame.display.update()
+        pygame.time.delay(3000)
+        rodando = False
 
     bg = pygame.image.load(cenarios[cenario_atual]).convert_alpha()
     bg = pygame.transform.scale(bg, (lar, alt))
@@ -142,12 +155,15 @@ while rodando:
     bala.update()
     for zombie in zombies:
         zombie.update()
+
         bala_rect = pygame.Rect(bala.x, bala.y, 30, 30)
         zombie_rect = pygame.Rect(zombie.x, zombie.y, 80, 80)
+
         if bala.ativa and bala_rect.colliderect(zombie_rect):
             zombie.vida -= 1
             if zombie.vida <= 0:
                 xp += 1
+                xp_total += 1
                 zombie.respawn()
             bala.ativa = False
 
@@ -163,9 +179,9 @@ while rodando:
         zombie.draw(screen)
     bala.draw(screen)
     player.draw(screen)
-    screen.blit(fonte.render(f"XP: {total_xp}", True, (255, 255, 255)), (20, 20))
-    screen.blit(fonte.render(f"Vida: {player.vida}", True, (255, 0, 0)), (20, 50))
+    screen.blit(fonte.render(f"XP: {xp}", True, (255, 255, 255)), (20, 20))
+    screen.blit(fonte.render(f"XP Total: {xp_total}", True, (255, 255, 255)), (20, 50))
+    screen.blit(fonte.render(f"Vida: {player.vida}", True, (255, 0, 0)), (20, 80))
     pygame.display.update()
 
 pygame.quit()
-
