@@ -23,7 +23,7 @@ class Player:
         self.x = 200
         self.y = 570
         self.velocidade = 2  # Velocidade inicial do jogador
-        self.vida = 6
+        self.vida = 3
         self.tiro_rapido = False  # Controla se o tiro é rápido ou não
 
     def draw(self, screen):
@@ -101,9 +101,9 @@ while rodando:
                 cenarios_visitados.add(cenario_atual)
                 while pausado:
                     screen.fill((0, 0, 0))
-                    option1 = fonte.render("1 - Mais Velocidade (Floresta)", True, (255, 255, 255))
-                    option2 = fonte.render("2 - Mais Vida (Neve)", True, (255, 255, 255))
-                    option3 = fonte.render("3 - Tiro Mais Rápido (Deserto)", True, (255, 255, 255))
+                    option1 = fonte.render("1 - Mais +1 Velocidade", True, (255, 255, 255))
+                    option2 = fonte.render("2 - Mais +3 Vida", True, (255, 255, 255))
+                    option3 = fonte.render("3 - Tiro Mais Rápido", True, (255, 255, 255))
                     screen.blit(option1, (200, 200))
                     screen.blit(option2, (200, 250))
                     screen.blit(option3, (200, 300))
